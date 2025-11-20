@@ -1,0 +1,191 @@
+<style>
+    .drcdc-container {
+        width: 450px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        font-family: Arial, sans-serif;
+    }
+    .drcdc-title {
+        text-align: center;
+        color: #242021;
+        font-family: 'urw-din-condensed';
+        font-weight: 600;
+        font-size: 24px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+    }
+    .drcdc-input-group {
+        margin-bottom: 15px;
+    }
+    .drcdc-input-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .drcdc-input-group input, 
+    .drcdc-input-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .drcdc-btn {
+        display: inline-block;
+        width: 100%;
+        padding: 10px 20px;
+        margin-bottom: 8px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .drcdc-calculate-btn {
+        background-color: #da1f31;
+        color: #fff;
+    }
+    .drcdc-calculate-btn:hover {
+        background-color: #242021;
+        color: #da1f31;
+    }
+    .drcdc-reset-btn {
+        background-color: #ccc;
+        color: #242021;
+    }
+    .drcdc-reset-btn:hover {
+        background-color: #999;
+        color: white;
+    }
+    .drcdc-results {
+        margin-top: 20px;
+    }
+
+    @media (max-width: 900px) {
+        .drcdc-container {
+            width: auto;
+            margin: 20px;
+        }
+    }
+</style>
+
+<div class="drcdc-container" id="drcdc-container">
+    <h3 class="drcdc-title">Disc or Ring Compression Deflection Calculator</h3>
+
+    <div class="drcdc-input-group">
+        <label for="drcdc-calculationType">Select Calculation Type</label>
+        <select id="drcdc-calculationType">
+            <option value="disc">Disc (OD only able to bulge)</option>
+            <option value="ring_od">Ring (OD only able to bulge)</option>
+            <option value="ring_id">Ring (ID only able to bulge)</option>
+            <option value="ring_both">Ring (ID and OD able to bulge)</option>
+        </select>
+    </div>
+
+    <div class="drcdc-input-group">
+        <label for="drcdc-outerDiameter">Outside Diameter (inches)</label>
+        <input type="number" id="drcdc-outerDiameter" placeholder="Enter value in inches">
+    </div>
+
+    <div class="drcdc-input-group">
+        <label for="drcdc-innerDiameter">Inside Diameter (inches)</label>
+        <input type="number" id="drcdc-innerDiameter" placeholder="Enter value in inches">
+    </div>
+
+    <div class="drcdc-input-group">
+        <label for="drcdc-thickness">Thickness (inches)</label>
+        <input type="number" id="drcdc-thickness" placeholder="Enter value in inches">
+    </div>
+
+    <div class="drcdc-input-group">
+        <label for="drcdc-youngModulus">Young's Modulus (PSI)</label>
+        <select id="drcdc-youngModulus">
+            <option value="500">40A - 500 PSI</option>
+            <option value="550">45A - 550 PSI</option>
+            <option value="600">50A - 600 PSI</option>
+            <option value="700">55A - 700 PSI</option>
+            <option value="850">60A - 850 PSI</option>
+            <option value="1000">65A - 1000 PSI</option>
+            <option value="1200">70A - 1200 PSI</option>
+            <option value="1450">75A - 1450 PSI</option>
+            <option value="1850">80A - 1850 PSI</option>
+            <option value="2500">85A - 2500 PSI</option>
+            <option value="4000">90A - 4000 PSI</option>
+            <option value="11000">95A - 11000 PSI</option>
+            <option value="11000">50D - 11000 PSI</option>
+            <option value="28000">60D - 28000 PSI</option>
+            <option value="90000">70D - 90000 PSI</option>
+        </select>
+    </div>
+
+    <div class="drcdc-input-group">
+        <p>At least one of these must be entered:</p>
+        <label for="drcdc-loadPounds">Load in Pounds (optional)</label>
+        <input type="number" id="drcdc-loadPounds" placeholder="Enter value in pounds">
+    </div>
+
+    <div class="drcdc-input-group">
+        <label for="drcdc-loadPsi">Load in PSI (optional)</label>
+        <input type="number" id="drcdc-loadPsi" placeholder="Enter value in psi">
+    </div>
+
+    <button class="drcdc-btn drcdc-calculate-btn" onclick="drcdcCalculate()">Calculate</button>
+    <button class="drcdc-btn drcdc-reset-btn" onclick="drcdcReset()">Reset</button>
+
+    <div class="drcdc-results" id="drcdc-results"></div>
+</div>
+
+<script>
+function drcdcCalculate() {
+    const calculationType = document.getElementById('drcdc-calculationType').value;
+    const outerDiameter = parseFloat(document.getElementById('drcdc-outerDiameter').value);
+    const innerDiameter = parseFloat(document.getElementById('drcdc-innerDiameter').value);
+    const thickness = parseFloat(document.getElementById('drcdc-thickness').value);
+    const youngModulus = parseFloat(document.getElementById('drcdc-youngModulus').value);
+    const loadPounds = parseFloat(document.getElementById('drcdc-loadPounds').value) || null;
+    const loadPsi = parseFloat(document.getElementById('drcdc-loadPsi').value) || null;
+
+    const pi = 3.1416;
+    let areaCompressed, shapeFactor, areaBulge;
+
+    if (calculationType === 'disc') {
+        areaCompressed = pi * Math.pow(outerDiameter / 2, 2);
+        areaBulge = outerDiameter * pi * thickness;
+    } 
+    else if (calculationType === 'ring_od') {
+        areaCompressed = pi * Math.pow(outerDiameter / 2, 2) - pi * Math.pow(innerDiameter / 2, 2);
+        areaBulge = outerDiameter * pi * thickness;
+    } 
+    else if (calculationType === 'ring_id') {
+        areaCompressed = pi * Math.pow(outerDiameter / 2, 2) - pi * Math.pow(innerDiameter / 2, 2);
+        areaBulge = pi * innerDiameter * thickness;
+    } 
+    else if (calculationType === 'ring_both') {
+        areaCompressed = pi * Math.pow(outerDiameter / 2, 2) - pi * Math.pow(innerDiameter / 2, 2);
+        areaBulge = (outerDiameter * pi * thickness) + (innerDiameter * pi * thickness);
+    }
+
+    shapeFactor = areaCompressed / areaBulge;
+    const shapeFactorF = 1 + (2 * Math.pow(shapeFactor, 2));
+    const psi = loadPsi ? loadPsi : loadPounds / areaCompressed;
+    const deflectionPercentPerInch = psi / (youngModulus * shapeFactorF);
+    const inchesOfDeflection = deflectionPercentPerInch * thickness;
+
+    document.getElementById('drcdc-results').innerHTML = `
+        <h2>Results</h2>
+        <p>Deflection percent per inch thickness: ${deflectionPercentPerInch.toFixed(7)} %</p>
+        <p>Inches of deflection: ${inchesOfDeflection.toFixed(5)}</p>
+    `;
+}
+
+function drcdcReset() {
+    // Reset all inputs and selects
+    const container = document.getElementById('drcdc-container');
+    container.querySelectorAll('input').forEach(input => input.value = "");
+    container.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+    document.getElementById('drcdc-results').innerHTML = "";
+}
+</script>

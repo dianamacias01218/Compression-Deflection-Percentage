@@ -1,0 +1,181 @@
+<style>
+  .wrcc-container {
+    width: 450px;
+    margin: 40px auto;
+    padding: 24px;
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  .wrcc-title {
+    text-align: center;
+    color: #242021;
+    font-family: "urw-din-condensed", sans-serif;
+    font-weight: 600;
+    font-size: 24px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .wrcc-input-group {
+    margin-bottom: 16px;
+  }
+
+  .wrcc-input-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #242021;
+  }
+
+  .wrcc-input-group input,
+  .wrcc-input-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  .wrcc-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    margin-bottom: 6px;
+    font-weight: 600;
+    transition: .2s ease;
+  }
+
+  .wrcc-calculate-btn {
+    background-color: #da1f31;
+    color: #fff;
+  }
+  .wrcc-calculate-btn:hover {
+    background-color: #242021;
+    color: #da1f31;
+  }
+
+  .wrcc-reset-btn {
+    background-color: #ccc;
+    color: #242021;
+  }
+  .wrcc-reset-btn:hover {
+    background-color: #999;
+    color: white;
+  }
+
+  .wrcc-results {
+    margin-top: 20px;
+  }
+
+  .wrcc-results h2 {
+    margin-bottom: 10px;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 900px) {
+    .wrcc-container {
+      width: 100%;
+      margin: 20px auto;
+    }
+  }
+</style>
+
+<div class="wrcc-container">
+  <h3 class="wrcc-title">Wheel & Roller Compression Deflection Calculator</h3>
+
+  <div class="wrcc-input-group">
+    <label for="wrcc-urethaneDiameter">Outside Diameter of Urethane (in)</label>
+    <input type="number" id="wrcc-urethaneDiameter" placeholder="Enter value">
+  </div>
+
+  <div class="wrcc-input-group">
+    <label for="wrcc-coreDiameter">Outside Diameter of Core (in)</label>
+    <input type="number" id="wrcc-coreDiameter" placeholder="Enter value">
+  </div>
+
+  <div class="wrcc-input-group">
+    <label for="wrcc-width">Width of Wheel or Roller (in)</label>
+    <input type="number" id="wrcc-width" placeholder="Enter value">
+  </div>
+
+  <div class="wrcc-input-group">
+    <label for="wrcc-youngModulus">Young's Modulus</label>
+    <select id="wrcc-youngModulus">
+      <option value="500">40A – 500 PSI</option>
+      <option value="550">45A – 550 PSI</option>
+      <option value="600">50A – 600 PSI</option>
+      <option value="700">55A – 700 PSI</option>
+      <option value="850">60A – 850 PSI</option>
+      <option value="1000">65A – 1000 PSI</option>
+      <option value="1200">70A – 1200 PSI</option>
+      <option value="1450">75A – 1450 PSI</option>
+      <option value="1850">80A – 1850 PSI</option>
+      <option value="2500">85A – 2500 PSI</option>
+      <option value="4000">90A – 4000 PSI</option>
+      <option value="11000">95A – 11000 PSI</option>
+      <option value="11000">50D – 11000 PSI</option>
+      <option value="28000">60D – 28000 PSI</option>
+      <option value="90000">70D – 90000 PSI</option>
+    </select>
+  </div>
+
+  <div class="wrcc-input-group">
+    <label for="wrcc-loadPounds">Load (lbs)</label>
+    <input type="number" id="wrcc-loadPounds" placeholder="Enter value">
+  </div>
+
+  <button class="wrcc-btn wrcc-calculate-btn" onclick="wrccCalculate()">Calculate</button>
+  <button class="wrcc-btn wrcc-reset-btn" onclick="wrccReset()">Reset</button>
+
+  <div class="wrcc-results" id="wrcc-results"></div>
+</div>
+
+<script>
+  function wrccCalculate() {
+    const urethaneDiameter = parseFloat(document.getElementById('wrcc-urethaneDiameter').value);
+    const coreDiameter = parseFloat(document.getElementById('wrcc-coreDiameter').value);
+    const width = parseFloat(document.getElementById('wrcc-width').value);
+    const youngModulus = parseFloat(document.getElementById('wrcc-youngModulus').value);
+    const loadPounds = parseFloat(document.getElementById('wrcc-loadPounds').value);
+
+    if (!urethaneDiameter || !coreDiameter || !width || !youngModulus || !loadPounds) {
+      document.getElementById('wrcc-results').innerHTML =
+        "<p>Please enter valid numbers for all fields.</p>";
+      return;
+    }
+
+    const urethaneRadius = urethaneDiameter / 2;
+    const coreRadius = coreDiameter / 2;
+
+    const calcUrethane =
+      (0.75 * loadPounds * (urethaneRadius - coreRadius)) /
+      (youngModulus * width * Math.sqrt(8 * urethaneRadius));
+
+    const calcCore = calcUrethane * calcUrethane;
+
+    const deflectionInches = (calcCore ** (1/3)).toFixed(3);
+    const deflectionPercent = ((deflectionInches / (urethaneRadius - coreRadius)) * 100).toFixed(1);
+
+    document.getElementById('wrcc-results').innerHTML = `
+      <h2>Results</h2>
+      <p><strong>Deflection (in):</strong> ${deflectionInches}</p>
+      <p><strong>Deflection (%):</strong> ${deflectionPercent}%</p>
+    `;
+  }
+
+  function wrccReset() {
+    document.getElementById('wrcc-urethaneDiameter').value = '';
+    document.getElementById('wrcc-coreDiameter').value = '';
+    document.getElementById('wrcc-width').value = '';
+    document.getElementById('wrcc-youngModulus').selectedIndex = 0;
+    document.getElementById('wrcc-loadPounds').value = '';
+    document.getElementById('wrcc-results').innerHTML = '';
+  }
+</script>
